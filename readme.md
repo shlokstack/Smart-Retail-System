@@ -34,10 +34,15 @@ Camera Feed → YOLOv8 Detection → SKU & Empty Slot Analysis → Dashboard →
 ## Tech Stack:
 
 Frontend: React, Tailwind CSS
+
 Backend: FastAPI / Node.js
+
 AI/ML: YOLOv8, ONNX Runtime
+
 Analytics: Prophet Forecasting
+
 Database: PostgreSQL / MongoDB
+
 
 ---
 
@@ -57,9 +62,13 @@ ShelfPulse-AI
 ## Impact:
 
 > Reduce out-of-stock losses
+> 
 > Improve operational efficiency
+> 
 > Increase retail revenue
+> 
 > Enable smarter decision-making
+> 
 
 ---
 
@@ -73,18 +82,26 @@ ShelfPulse-AI
 ## Why It Stands Out:
 
 > Combines Computer Vision and Forecasting
+> 
 > Works in real-time with low latency
+> 
 > Scalable for multi-store retail chains
+> 
 > Targets a large global retail problem
+> 
 
 ---
 
 ## Future Scope:
 
 > Mobile app for store managers
+> 
 > Multi-store analytics dashboard
+> 
 > Advanced AI demand prediction
+> 
 > IoT and smart shelf integration
+> 
 
 ---
 
