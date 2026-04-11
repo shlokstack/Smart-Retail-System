@@ -3,12 +3,16 @@ from sqlalchemy import text
 
 from database.base import Base
 from database.connection import engine
+import models
 
 # Import models so SQLAlchemy registers them on Base.metadata
 from models.detection import Detection  # noqa: F401
 from models.alert_model import Alert  # noqa: F401
+from models.forecast_model import Forecast  # noqa: F40
+
 
 from routes import alerts, analytics, dashboard, detection, history
+from routes.forecast import router as forecast_router
 
 app = FastAPI()
 
@@ -34,7 +38,7 @@ app.include_router(detection.router)
 app.include_router(dashboard.router)
 app.include_router(history.router)
 app.include_router(analytics.router)
-
+app.include_router(forecast_router)
 
 @app.get("/")
 def home():
