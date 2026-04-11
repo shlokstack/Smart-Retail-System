@@ -33,3 +33,37 @@ def home():
     return {
         "message": "Smart Retail Backend Running"
     }
+
+@app.get("/health")
+def system_health():
+
+    from database.connection import engine
+    import redis
+
+    db_status = "connected"
+    redis_status = "running"
+    overall_status = "healthy"
+
+    # Check database
+    try:
+        connection = engine.connect()
+        connection.close()
+
+    except Exception:
+        db_status = "disconnected"
+        overall_status = "unhealthy"
+
+    # Check Redis
+    try:
+        r = redis.Redis(host="localhost", port=6379)
+        r.ping()
+
+    except Exception:
+        redis_status = "stopped"
+        overall_status = "unhealthy"
+
+    return {
+        "status": overall_status,
+        "database": db_status,
+        "redis": redis_status
+    }
