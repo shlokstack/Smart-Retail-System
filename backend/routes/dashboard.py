@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from database.connection import SessionLocal
-from models.detection_model import Detection
+from models.detection import Detection
 
 # This line is REQUIRED
 router = APIRouter()

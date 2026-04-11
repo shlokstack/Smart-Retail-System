@@ -1,0 +1,7 @@
+{
+  "name": "Remix: ShelfPulse AI - Smart Retail Intelligence",
+  "description": "A Computer Vision-driven retail dashboard for real-time shelf auditing, SKU detection, and predictive replenishment.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

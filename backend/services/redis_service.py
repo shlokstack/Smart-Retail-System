@@ -1,4 +1,5 @@
 import redis
+import json
 
 # Create Redis connection
 redis_client = redis.Redis(
@@ -15,7 +16,7 @@ def send_alert(alert_data):
     try:
         redis_client.rpush(
             "alerts_queue",
-            str(alert_data)
+            json.dumps(alert_data)
         )
 
         print("Alert pushed to Redis:", alert_data)

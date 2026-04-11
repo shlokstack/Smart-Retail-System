@@ -1,0 +1,27 @@
+[
+  {
+    "product": "Milk",
+    "stock_level": "LOW",
+    "camera_id": "C01"
+  },
+  {
+    "product": "Bread",
+    "stock_level": "NORMAL",
+    "camera_id": "C02"
+  },
+  {
+    "product": "Eggs",
+    "stock_level": "EMPTY",
+    "camera_id": "C03"
+  },
+  {
+    "product": "Butter",
+    "stock_level": "LOW",
+    "camera_id": "C04"
+  },
+  {
+    "product": "Cheese",
+    "stock_level": "NORMAL",
+    "camera_id": "C05"
+  }
+]
