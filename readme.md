@@ -41,7 +41,7 @@ AI/ML: YOLOv8, ONNX Runtime
 
 Analytics: Prophet Forecasting
 
-Database: PostgreSQL / MongoDB
+Database: PostgreSQL / Neon
 
 
 ---
@@ -75,7 +75,8 @@ ShelfPulse-AI
 ## Mindmaps:
 
 >Tech Stack
-<img width="893" height="389" alt="image" src="https://github.com/user-attachments/assets/be5e6277-8d0b-4556-9e67-46264e2ea306" />
+<img width="896" height="401" alt="image" src="https://github.com/user-attachments/assets/17400c68-f50a-40a6-8855-5ec2285b5aac" />
+
 
 ---
 
