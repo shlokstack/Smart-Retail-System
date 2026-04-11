@@ -1,3 +1,4 @@
-from .detection import detection_model
+from .alert_model import Alert
+from .detection import Detection
 
-__all__ = ["detection_model"]
+__all__ = ["Alert", "Detection"]

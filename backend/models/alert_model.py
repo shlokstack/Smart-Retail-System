@@ -15,5 +15,6 @@ class Alert(Base):
     priority = Column(String)
     timestamp = Column(
         DateTime,
+        index=True,
         default=datetime.utcnow
     )

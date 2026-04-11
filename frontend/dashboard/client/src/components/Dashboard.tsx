@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { fetchAlertsTrend, fetchDashboardStats, type AlertsTrendPoint } from '../api';
 import { motion } from 'motion/react';
 import { 
   CheckCircle2, 
@@ -21,14 +22,20 @@ import {
 } from 'recharts';
 import { cn } from '../lib/utils';
 
-const SALES_DATA = [
-  { time: '08:00', sales: 45, stock: 95 },
-  { time: '10:00', sales: 52, stock: 88 },
-  { time: '12:00', sales: 85, stock: 75 },
-  { time: '14:00', sales: 65, stock: 65 },
-  { time: '16:00', sales: 95, stock: 45 },
-  { time: '18:00', sales: 120, stock: 30 },
-  { time: '20:00', sales: 80, stock: 25 },
+type DashboardStats = {
+  total_products: number;
+  low_stock_items: number;
+  out_of_stock_items: number;
+};
+
+const FALLBACK_ALERTS_TREND: AlertsTrendPoint[] = [
+  { time: '04-12 08:00', alerts: 2 },
+  { time: '04-12 10:00', alerts: 4 },
+  { time: '04-12 12:00', alerts: 7 },
+  { time: '04-12 14:00', alerts: 5 },
+  { time: '04-12 16:00', alerts: 6 },
+  { time: '04-12 18:00', alerts: 9 },
+  { time: '04-12 20:00', alerts: 4 },
 ];
 
 const INVENTORY_ITEMS = [
@@ -74,6 +81,41 @@ const StatCard = ({ title, value, change, icon: Icon, trend }: any) => (
 );
 
 export default function DashboardPage() {
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [alertsTrend, setAlertsTrend] = useState<AlertsTrendPoint[]>(FALLBACK_ALERTS_TREND);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        const [statsData, trendData] = await Promise.all([
+          fetchDashboardStats(),
+          fetchAlertsTrend(),
+        ]);
+        if (cancelled) return;
+        setStats(statsData);
+        if (Array.isArray(trendData) && trendData.length) setAlertsTrend(trendData);
+      } catch (error) {
+        console.error("Dashboard fetch error:", error);
+      }
+    };
+
+    load();
+    const interval = setInterval(load, 10000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, []);
+
+  const shelfAvailability = useMemo(() => {
+    if (!stats) return null;
+    if (!stats.total_products) return 100;
+    const available = stats.total_products - stats.out_of_stock_items;
+    return Math.max(0, Math.min(100, (available / stats.total_products) * 100));
+  }, [stats]);
+
   return (
     <div className="space-y-12">
       {/* Hero Header */}
@@ -89,31 +131,31 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard 
           title="Shelf Availability" 
-          value="94.2%" 
+          value={shelfAvailability === null ? "—" : `${shelfAvailability.toFixed(1)}%`}
           change="+2.4%" 
           icon={CheckCircle2} 
           trend="up" 
         />
         <StatCard 
           title="SKUs Detected" 
-          value="1,284" 
+          value={stats ? stats.total_products.toLocaleString() : "—"}
           change="+12" 
           icon={Eye} 
           trend="up" 
         />
         <StatCard 
           title="Low Stock Alerts" 
-          value="18" 
+          value={stats ? stats.low_stock_items.toLocaleString() : "—"}
           change="-4" 
           icon={AlertTriangle} 
           trend="down" 
         />
         <StatCard 
-          title="Est. Sales Recovery" 
-          value="$12,450" 
-          change="+$840" 
+          title="Out of Stock" 
+          value={stats ? stats.out_of_stock_items.toLocaleString() : "—"}
+          change="+0" 
           icon={TrendingUp} 
-          trend="up" 
+          trend="down" 
         />
       </div>
 
@@ -127,22 +169,19 @@ export default function DashboardPage() {
           >
             <div className="flex justify-between items-center mb-8">
               <div>
-                <h3 className="text-2xl font-heading italic">Sales vs Stock Trends</h3>
-                <p className="text-white/40 text-xs">Hourly analysis across all categories</p>
+                <h3 className="text-2xl font-heading italic">Alerts Trend</h3>
+                <p className="text-white/40 text-xs">Hourly alerts volume (IST)</p>
               </div>
               <div className="flex gap-2">
                 <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 text-[10px] uppercase tracking-wider">
-                  <span className="w-2 h-2 rounded-full bg-white" /> Sales
-                </div>
-                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 text-[10px] uppercase tracking-wider">
-                  <span className="w-2 h-2 rounded-full bg-white/20" /> Stock
+                  <span className="w-2 h-2 rounded-full bg-white" /> Alerts
                 </div>
               </div>
             </div>
             
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={SALES_DATA}>
+                <AreaChart data={alertsTrend}>
                   <defs>
                     <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#ffffff" stopOpacity={0.3}/>
@@ -171,18 +210,11 @@ export default function DashboardPage() {
                   />
                   <Area 
                     type="monotone" 
-                    dataKey="sales" 
+                    dataKey="alerts" 
                     stroke="#ffffff" 
                     strokeWidth={2}
                     fillOpacity={1} 
                     fill="url(#colorSales)" 
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="stock" 
-                    stroke="rgba(255,255,255,0.2)" 
-                    strokeWidth={2}
-                    fill="transparent" 
                   />
                 </AreaChart>
               </ResponsiveContainer>

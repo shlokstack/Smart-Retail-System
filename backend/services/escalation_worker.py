@@ -16,7 +16,9 @@ while True:
 
     try:
 
-        now = datetime.utcnow()
+        from datetime import datetime, timezone
+
+        now = datetime.now(timezone.utc)
 
         alerts = db.query(Alert).filter(
             Alert.status == "OPEN",

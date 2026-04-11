@@ -2,60 +2,97 @@ from database.connection import SessionLocal
 from models.alert_model import Alert
 from services.priority_service import get_priority
 from services.email_service import send_email_alert
+
 import redis
 import json
-import ast
+import time
 
-r = redis.Redis(host="localhost", port=6379, decode_responses=True)
+# =========================
+# REDIS CONNECTION
+# =========================
 
-print("🚀 Alert worker started... Waiting for alerts...")
+r = redis.Redis(
+    host="localhost",
+    port=6379,
+    decode_responses=True
+)
 
-while True:
+QUEUE_NAME = "alerts_queue"
 
-    message = r.blpop("alerts_queue")
 
-    if message:
+# =========================
+# WORKER
+# =========================
 
-        raw = message[1]
+def start_worker():
+
+    print("🚀 Alert worker started... Waiting for alerts...")
+
+    while True:
+
         try:
-            data = json.loads(raw)
-        except json.JSONDecodeError:
-            # Backward-compat for older queue items pushed with `str(dict)`
-            # Example: "{'product': 'Milk A', 'stock_level': 'LOW'}"
-            try:
-                data = ast.literal_eval(raw)
-            except Exception:
-                print("⚠️  Skipping invalid alert payload:", raw)
+
+            message = r.brpop(QUEUE_NAME)
+
+            if not message:
                 continue
 
-        print("🔔 Processing alert:", data)
+            data = json.loads(message[1])
 
-        db = SessionLocal()
+            print("🔔 Processing alert:", data)
 
-        # NEW: calculate priority
-        priority = get_priority(data["stock_level"])
+            db = SessionLocal()
 
-        alert = Alert(
-            product=data["product"],
-            stock_level=data["stock_level"],
-            camera_id=data["camera_id"],
-            status="OPEN",
-            priority=priority
-        )
+            # =========================
+            # PRIORITY LOGIC
+            # =========================
 
-        db.add(alert)
-        db.commit()
-        db.refresh(alert)
-
-        print("Priority:", priority)
-        print("✅ Alert saved with ID:", alert.id)
-
-        if priority in ["HIGH", "MEDIUM"]:
-            send_email_alert(
-                data["product"],
-                data["stock_level"],
-                data["camera_id"]
+            priority = get_priority(
+                data["stock_level"]
             )
-        print("✅ Alert processed:", alert.id)
 
-        db.close()
+            alert = Alert(
+                product=data["product"],
+                stock_level=data["stock_level"],
+                camera_id=data["camera_id"],
+                status="OPEN",
+                priority=priority
+            )
+
+            db.add(alert)
+            db.commit()
+            db.refresh(alert)
+
+            print("Priority:", priority)
+            print("✅ Alert saved with ID:", alert.id)
+
+            # =========================
+            # EMAIL ALERT
+            # =========================
+
+            if priority in ["HIGH", "MEDIUM"]:
+
+                send_email_alert(
+                    data["product"],
+                    data["stock_level"],
+                    data["camera_id"]
+                )
+
+                print("📧 Email sent")
+
+            db.close()
+
+        except Exception as e:
+
+            print("Worker error:", e)
+
+            time.sleep(2)
+
+
+# =========================
+# START WORKER
+# =========================
+
+if __name__ == "__main__":
+
+    start_worker()

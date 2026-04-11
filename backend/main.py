@@ -1,43 +1,48 @@
 from fastapi import FastAPI
-
-from routes import detection
-from routes import dashboard
-from routes import alerts
-from routes import history
+from sqlalchemy import text
 
 from database.base import Base
 from database.connection import engine
-from models import detection_model
-from models import alert_model
 
-# Create FastAPI app FIRST
+# Import models so SQLAlchemy registers them on Base.metadata
+from models.detection import Detection  # noqa: F401
+from models.alert_model import Alert  # noqa: F401
+
+from routes import alerts, analytics, dashboard, detection, history
+
 app = FastAPI()
+
 
 @app.on_event("startup")
 def _create_tables_on_startup():
-    # Create database tables (fails fast if DB is unreachable)
     print("🔌 Connecting to database and ensuring tables exist...")
     Base.metadata.create_all(bind=engine, checkfirst=True)
+
+    # Speed up trend queries on Postgres/Neon
+    if engine.dialect.name == "postgresql":
+        try:
+            with engine.begin() as conn:
+                conn.execute(text("CREATE INDEX IF NOT EXISTS ix_alerts_timestamp ON alerts (timestamp)"))
+        except Exception as e:
+            print("⚠️  Could not ensure alerts timestamp index:", e)
+
     print("✅ Database ready")
 
 
-# Then include routers
 app.include_router(alerts.router)
 app.include_router(detection.router)
 app.include_router(dashboard.router)
 app.include_router(history.router)
+app.include_router(analytics.router)
 
 
 @app.get("/")
 def home():
-    return {
-        "message": "Smart Retail Backend Running"
-    }
+    return {"message": "Smart Retail Backend Running"}
+
 
 @app.get("/health")
 def system_health():
-
-    from database.connection import engine
     import redis
 
     db_status = "connected"
@@ -46,9 +51,8 @@ def system_health():
 
     # Check database
     try:
-        connection = engine.connect()
-        connection.close()
-
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
     except Exception:
         db_status = "disconnected"
         overall_status = "unhealthy"
@@ -57,13 +61,9 @@ def system_health():
     try:
         r = redis.Redis(host="localhost", port=6379)
         r.ping()
-
     except Exception:
         redis_status = "stopped"
         overall_status = "unhealthy"
 
-    return {
-        "status": overall_status,
-        "database": db_status,
-        "redis": redis_status
-    }
+    return {"status": overall_status, "database": db_status, "redis": redis_status}
+

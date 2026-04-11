@@ -363,8 +363,40 @@
 <svg display="block" role="presentation" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><g d="M 0 0 L 5.6 5 L 0 10" fill="transparent" height="10px" id="AGKBSlDWd" transform="translate(7.2 5) rotate(-90 2.8 5)" width="5.600000106238827px"><path d="M 0 0 L 5.6 5 L 0 10" fill="transparent" height="10px" id="i0hqXxnUg" stroke-dasharray="0" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--l9lbiv, 1)" stroke="var(--870te7, var(--token-cd1a4164-21fe-44c4-952e-eb631382562e, rgb(83, 0, 161)))" transform="translate(0 0)" width="5.6000001062388325px"/></g></svg>
 <svg display="block" role="presentation" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M 0 6 L 6 12 L 18 0" fill="transparent" height="12px" id="KVyKpRjev" stroke-dasharray="" stroke-linecap="round" stroke-linejoin="round" stroke-width="var(--1ww558a, 2)" stroke="var(--4rxgx6, black)" transform="translate(3 6)" width="18px"/></svg>
 </div>
-	
-    
-    
+	<script>
+window.onload = function () {
+
+    const elements = document.querySelectorAll("p, div, span, button");
+
+    elements.forEach(function(el) {
+
+        const text = el.innerText?.trim();
+
+        // TRY FOR FREE
+        if (text === "Try for free") {
+
+            el.style.cursor = "pointer";
+
+            el.onclick = function () {
+                window.location.href = "http://localhost:3000";
+            };
+
+        }
+
+        // LOG IN
+        if (text === "Log In") {
+
+            el.style.cursor = "pointer";
+
+            el.onclick = function () {
+                window.location.href = "http://localhost:3000";
+            };
+
+        }
+
+    });
+
+};
+</script>
 </body>
 </html>
